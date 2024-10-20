@@ -1,15 +1,27 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 function Search() {
- const [input, setInput] = useState("");
- const [pokemon, setPokemon] = useState(null);
+  const [input, setInput] = useState("");
+  const [pokemon, setPokemon] = useState(null);
+  const [error, setError] = useState(""); // Estado para armazenar o erro
 
   const fetchPokemon = async () => {
-    const response = await fetch(
-      `https://pokedex.mimo.dev/api/pokemon/${input.toLowerCase()}`
-    );
-    const data = await response.json();
-    setPokemon(data);
+    try {
+      setError(""); // Limpa o erro ao iniciar uma nova busca
+      const response = await fetch(
+        `https://pokedex.mimo.dev/api/pokemon/${input.toLowerCase()}`
+      );
+
+      if (!response.ok) {
+        throw new Error("Pokemon not found");
+      }
+
+      const data = await response.json();
+      setPokemon(data); // Define o Pokémon se a busca foi bem-sucedida
+    } catch (err) {
+      setPokemon(null); // Limpa qualquer resultado anterior
+      setError(err.message); // Define a mensagem de erro
+    }
   };
 
   return (
@@ -24,12 +36,16 @@ function Search() {
         />
         <button onClick={fetchPokemon}>Search</button>
       </div>
+
+      {error && <p style={{ color: 'red' }}>{error}</p>} {/* Exibe a mensagem de erro */}
+
       {pokemon && (
         <div className="pokemon-card">
           <h2>{pokemon.name}</h2>
           <img src={pokemon.sprites.front_default} alt={pokemon.name} />
           <p>Height: {pokemon.height}</p>
           <p>Weight: {pokemon.weight}</p>
+          
         </div>
       )}
     </div>
